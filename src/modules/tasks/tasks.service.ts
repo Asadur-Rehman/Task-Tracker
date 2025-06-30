@@ -64,20 +64,25 @@ export class TasksService {
 
   updateTask(
     taskId: string,
-    name: string,
-    desc: string,
-    status: string,
-    start: Date,
-    end: Date,
+    name?: string,
+    desc?: string,
+    status?: string,
+    start?: Date,
+    end?: Date,
   ) {
+    const updatePayload = Object.fromEntries(
+      Object.entries({
+        name,
+        description: desc,
+        status,
+        startDate: start,
+        deadline: end,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      }).filter(([_, v]) => v !== undefined),
+    );
+
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    updateData('tasks', taskId, {
-      name: name,
-      description: desc,
-      status: status,
-      startDate: start,
-      deadline: end,
-    });
+    updateData('tasks', taskId, updatePayload);
   }
 
   deleteTask(taskId: string) {

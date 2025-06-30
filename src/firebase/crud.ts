@@ -80,7 +80,6 @@ export const readStatusData = async <T = any>(
   }
 };
 
-
 export const updateData = async <T extends object>(
   collectionName: string,
   id: string,
