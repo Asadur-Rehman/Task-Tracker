@@ -9,6 +9,8 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 
+import { query, where } from 'firebase/firestore';
+
 import { db } from './fire';
 
 export interface WithId {
@@ -55,6 +57,29 @@ export const readData = async <T = any>(
     console.error('Error getting document:', error.message);
   }
 };
+
+export const readStatusData = async <T = any>(
+  collectionName: string,
+  status: string,
+): Promise<T[]> => {
+  try {
+    const collectionRef = collection(db, collectionName);
+    const q = query(collectionRef, where('status', '==', status));
+    const querySnapshot = await getDocs(q);
+
+    const dataArr: T[] = [];
+    querySnapshot.forEach((docSnap) => {
+      dataArr.push(docSnap.data() as T);
+    });
+
+    return dataArr;
+  } catch (error: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    console.error('Error getting documents by status:', error.message);
+    return [];
+  }
+};
+
 
 export const updateData = async <T extends object>(
   collectionName: string,

@@ -2,6 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   readData,
+  readStatusData,
   readAllData,
   createData,
   deleteData,
@@ -22,7 +23,7 @@ export class TasksService {
   ): Promise<string | null> {
     try {
       const taskId = Date.now().toString(); // or use generateId() from crud.ts
-      const newTask = new Task(taskId, name, desc, start, end);
+      const newTask = new Task(taskId, name, desc, 'Todo', start, end);
       await createData('tasks', newTask);
       return taskId;
     } catch (err) {
@@ -37,6 +38,24 @@ export class TasksService {
     return data || [];
   }
 
+  async getBlueTasks() {
+    const data = await readStatusData('tasks', 'Todo');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return data || [];
+  }
+
+  async getOrangeTasks() {
+    const data = await readStatusData('tasks', 'InProgress');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return data || [];
+  }
+
+  async getGreenTasks() {
+    const data = await readStatusData('tasks', 'Completed');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return data || [];
+  }
+
   async getSingleTask(taskId: string) {
     const task = await readData('tasks', taskId);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -47,6 +66,7 @@ export class TasksService {
     taskId: string,
     name: string,
     desc: string,
+    status: string,
     start: Date,
     end: Date,
   ) {
@@ -54,6 +74,7 @@ export class TasksService {
     updateData('tasks', taskId, {
       name: name,
       description: desc,
+      status: status,
       startDate: start,
       deadline: end,
     });

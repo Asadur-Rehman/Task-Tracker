@@ -35,6 +35,21 @@ export class TasksController {
     return this.tasksService.getTasks();
   }
 
+  @Get('blue')
+  getBlueTasks() {
+    return this.tasksService.getBlueTasks();
+  }
+
+  @Get('orange')
+  getOrangeTasks() {
+    return this.tasksService.getOrangeTasks();
+  }
+
+  @Get('green')
+  getGreenTasks() {
+    return this.tasksService.getGreenTasks();
+  }
+
   @Get(':id')
   getTask(@Param('id') taskId: string) {
     return this.tasksService.getSingleTask(taskId);
@@ -45,6 +60,7 @@ export class TasksController {
     @Param('id') taskId: string,
     @Body('name') taskName: string,
     @Body('description') taskDesc: string,
+    @Body('status') taskStatus: string,
     @Body('startDate') taskStart: Date,
     @Body('deadline') taskEnd: Date,
   ) {
@@ -52,6 +68,7 @@ export class TasksController {
       taskId,
       taskName,
       taskDesc,
+      taskStatus,
       taskStart,
       taskEnd,
     );
