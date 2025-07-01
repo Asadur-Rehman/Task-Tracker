@@ -22,7 +22,7 @@ export class TasksService {
     end: Date,
   ): Promise<string | null> {
     try {
-      const taskId = Date.now().toString(); // or use generateId() from crud.ts
+      const taskId = Date.now().toString();
       const newTask = new Task(taskId, name, desc, 'Todo', start, end);
       await createData('tasks', newTask);
       return taskId;
