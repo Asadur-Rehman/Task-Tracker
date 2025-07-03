@@ -1,3 +1,4 @@
+// src/tasks/entities/task.model.ts
 export class Task {
   constructor(
     public id: string,
@@ -6,5 +7,6 @@ export class Task {
     public status: string,
     public startDate: Date,
     public deadline: Date,
+    public userId: string,
   ) {}
 }

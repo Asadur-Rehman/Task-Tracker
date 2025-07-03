@@ -1,3 +1,4 @@
+// src/tasks/tasks.controller.ts
 import {
   Controller,
   Post,
@@ -6,78 +7,76 @@ import {
   Param,
   Patch,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
-
 import { TasksService } from './tasks.service';
+import { FirebaseAuthGuard } from '../../auth/firebase-auth.guard';
+import { User } from '../../auth/user.decorator';
 
+@UseGuards(FirebaseAuthGuard)
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
   addTask(
-    @Body('name') taskName: string,
-    @Body('description') taskDesc: string,
-    @Body('startDate') taskStart: Date,
-    @Body('deadline') taskEnd: Date,
+    @User('uid') userId: string,
+    @Body('name') name: string,
+    @Body('description') desc: string,
+    @Body('startDate') start: Date,
+    @Body('deadline') end: Date,
   ) {
-    const generatedId = this.tasksService.insertTask(
-      taskName,
-      taskDesc,
-      taskStart,
-      taskEnd,
-    );
-    return { id: generatedId };
+    return this.tasksService.insertTask(name, desc, start, end, userId);
   }
 
   @Get()
-  getAllTasks() {
-    return this.tasksService.getTasks();
+  getAllTasks(@User('uid') userId: string) {
+    return this.tasksService.getTasks(userId);
   }
 
   @Get('blue')
-  getBlueTasks() {
-    return this.tasksService.getBlueTasks();
+  getBlueTasks(@User('uid') userId: string) {
+    return this.tasksService.getBlueTasks(userId);
   }
 
   @Get('orange')
-  getOrangeTasks() {
-    return this.tasksService.getOrangeTasks();
+  getOrangeTasks(@User('uid') userId: string) {
+    return this.tasksService.getOrangeTasks(userId);
   }
 
   @Get('green')
-  getGreenTasks() {
-    return this.tasksService.getGreenTasks();
+  getGreenTasks(@User('uid') userId: string) {
+    return this.tasksService.getGreenTasks(userId);
   }
 
   @Get(':id')
-  getTask(@Param('id') taskId: string) {
-    return this.tasksService.getSingleTask(taskId);
+  getTask(@Param('id') id: string, @User('uid') userId: string) {
+    return this.tasksService.getSingleTask(id, userId);
   }
 
   @Patch(':id')
   updateTask(
-    @Param('id') taskId: string,
-    @Body('name') taskName: string,
-    @Body('description') taskDesc: string,
-    @Body('status') taskStatus: string,
-    @Body('startDate') taskStart: Date,
-    @Body('deadline') taskEnd: Date,
+    @Param('id') id: string,
+    @User('uid') userId: string,
+    @Body('name') name: string,
+    @Body('description') desc: string,
+    @Body('status') status: string,
+    @Body('startDate') start: Date,
+    @Body('deadline') end: Date,
   ) {
-    this.tasksService.updateTask(
-      taskId,
-      taskName,
-      taskDesc,
-      taskStatus,
-      taskStart,
-      taskEnd,
+    return this.tasksService.updateTask(
+      id,
+      userId,
+      name,
+      desc,
+      status,
+      start,
+      end,
     );
-    return null;
   }
 
   @Delete(':id')
-  removeTask(@Param('id') taskId: string) {
-    this.tasksService.deleteTask(taskId);
-    return null;
+  removeTask(@Param('id') id: string, @User('uid') userId: string) {
+    return this.tasksService.deleteTask(id, userId);
   }
 }

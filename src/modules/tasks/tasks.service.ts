@@ -1,29 +1,30 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+// src/tasks/tasks.service.ts
 import { Injectable } from '@nestjs/common';
 import {
   readData,
-  readStatusData,
   readAllData,
+  readStatusData,
   createData,
-  deleteData,
   updateData,
+  deleteData,
 } from '../../firebase/crud';
-
 import { Task } from './entities/task.model';
 
 @Injectable()
 export class TasksService {
-  private tasks: Task[] = [];
-
   async insertTask(
     name: string,
     desc: string,
     start: Date,
     end: Date,
+    userId: string,
   ): Promise<string | null> {
     try {
       const taskId = Date.now().toString();
-      const newTask = new Task(taskId, name, desc, 'Todo', start, end);
+      const newTask = new Task(taskId, name, desc, 'Todo', start, end, userId);
       await createData('tasks', newTask);
       return taskId;
     } catch (err) {
@@ -32,38 +33,37 @@ export class TasksService {
     }
   }
 
-  async getTasks() {
-    const data = await readAllData('tasks');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return data || [];
+  async getTasks(userId: string) {
+    const all = await readAllData('tasks');
+    return all.filter((t) => t.userId === userId);
   }
 
-  async getBlueTasks() {
+  async getBlueTasks(userId: string) {
     const data = await readStatusData('tasks', 'Todo');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return data || [];
+    return data.filter((t) => t.userId === userId);
   }
 
-  async getOrangeTasks() {
+  async getOrangeTasks(userId: string) {
     const data = await readStatusData('tasks', 'InProgress');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return data || [];
+    return data.filter((t) => t.userId === userId);
   }
 
-  async getGreenTasks() {
+  async getGreenTasks(userId: string) {
     const data = await readStatusData('tasks', 'Completed');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return data || [];
+    return data.filter((t) => t.userId === userId);
   }
 
-  async getSingleTask(taskId: string) {
+  async getSingleTask(taskId: string, userId: string) {
     const task = await readData('tasks', taskId);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    if (task?.userId !== userId) {
+      throw new Error('Unauthorized access to task');
+    }
     return task;
   }
 
   updateTask(
     taskId: string,
+    userId: string,
     name?: string,
     desc?: string,
     status?: string,
@@ -77,16 +77,21 @@ export class TasksService {
         status,
         startDate: start,
         deadline: end,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        userId,
       }).filter(([_, v]) => v !== undefined),
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     updateData('tasks', taskId, updatePayload);
   }
 
-  deleteTask(taskId: string) {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    deleteData('tasks', taskId);
+  deleteTask(taskId: string, userId: string) {
+
+    readData('tasks', taskId).then((task) => {
+      if (task?.userId === userId) {
+        deleteData('tasks', taskId);
+      } else {
+        throw new Error('Unauthorized deletion');
+      }
+    });
   }
 }

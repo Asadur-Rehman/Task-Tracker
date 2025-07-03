@@ -1,17 +1,5 @@
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  onSnapshot,
-  setDoc,
-  updateDoc,
-} from 'firebase/firestore';
-
-import { query, where } from 'firebase/firestore';
-
-import { db } from './fire';
+// src/firebase/crud.ts
+import { db } from './firebase-admin';
 
 export interface WithId {
   id: string;
@@ -22,7 +10,7 @@ export const generateId = (): string => {
   const characters =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   return Array.from({ length: 16 }, () =>
-    characters.charAt(Math.floor(Math.random() * characters.length)),
+    characters.charAt(Math.floor(Math.random() * characters.length))
   ).join('');
 };
 
@@ -32,8 +20,8 @@ export const createData = async <T extends object>(
 ): Promise<void> => {
   const id = generateId();
   try {
-    const docRef = doc(db, collectionName, id);
-    await setDoc(docRef, { ...data, id });
+    const docRef = db.collection(collectionName).doc(id);
+    await docRef.set({ ...data, id });
   } catch (error) {
     console.error('Error adding document:', error);
   }
@@ -44,16 +32,14 @@ export const readData = async <T = any>(
   id: string,
 ): Promise<T | undefined> => {
   try {
-    const docRef = doc(db, collectionName, id);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
+    const docRef = db.collection(collectionName).doc(id);
+    const docSnap = await docRef.get();
+    if (docSnap.exists) {
       return docSnap.data() as T;
     } else {
       console.warn('No such document!');
     }
   } catch (error: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     console.error('Error getting document:', error.message);
   }
 };
@@ -63,18 +49,13 @@ export const readStatusData = async <T = any>(
   status: string,
 ): Promise<T[]> => {
   try {
-    const collectionRef = collection(db, collectionName);
-    const q = query(collectionRef, where('status', '==', status));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await db
+      .collection(collectionName)
+      .where('status', '==', status)
+      .get();
 
-    const dataArr: T[] = [];
-    querySnapshot.forEach((docSnap) => {
-      dataArr.push(docSnap.data() as T);
-    });
-
-    return dataArr;
+    return querySnapshot.docs.map((doc) => doc.data() as T);
   } catch (error: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     console.error('Error getting documents by status:', error.message);
     return [];
   }
@@ -86,8 +67,8 @@ export const updateData = async <T extends object>(
   data: T,
 ): Promise<void> => {
   try {
-    const docRef = doc(db, collectionName, id);
-    await updateDoc(docRef, { ...data, id });
+    const docRef = db.collection(collectionName).doc(id);
+    await docRef.update({ ...data });
     console.log('Document successfully updated!');
   } catch (error) {
     console.error('Error updating document:', error);
@@ -99,8 +80,8 @@ export const deleteData = async (
   id: string,
 ): Promise<void> => {
   try {
-    const docRef = doc(db, collectionName, id);
-    await deleteDoc(docRef);
+    const docRef = db.collection(collectionName).doc(id);
+    await docRef.delete();
     console.log('Document successfully deleted!');
   } catch (error) {
     console.error('Error deleting document:', error);
@@ -111,31 +92,10 @@ export const readAllData = async <T = any>(
   collectionName: string,
 ): Promise<T[]> => {
   try {
-    const querySnapshot = await getDocs(collection(db, collectionName));
-    const dataArr: T[] = [];
-
-    querySnapshot.forEach((docSnap) => {
-      dataArr.push(docSnap.data() as T);
-    });
-
-    return dataArr;
+    const querySnapshot = await db.collection(collectionName).get();
+    return querySnapshot.docs.map((doc) => doc.data() as T);
   } catch (error) {
     console.error('Error getting documents:', error);
     return [];
   }
-};
-
-export const listenToCollection = <T = any>(
-  collectionName: string,
-  callback: (data: T[]) => void,
-): (() => void) => {
-  const collectionRef = collection(db, collectionName);
-
-  return onSnapshot(collectionRef, (snapshot) => {
-    const data: T[] = [];
-    snapshot.forEach((docSnap) => {
-      data.push(docSnap.data() as T);
-    });
-    callback(data);
-  });
 };
