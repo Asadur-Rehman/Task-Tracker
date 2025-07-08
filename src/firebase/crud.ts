@@ -1,4 +1,3 @@
-// src/firebase/crud.ts
 import { db } from './firebase-admin';
 
 export interface WithId {

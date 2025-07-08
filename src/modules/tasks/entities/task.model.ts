@@ -1,4 +1,3 @@
-// src/tasks/entities/task.model.ts
 export class Task {
   constructor(
     public id: string,

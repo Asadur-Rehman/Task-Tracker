@@ -1,5 +1,3 @@
-// src/user/user.model.ts
-
 export interface FirebaseUser {
   uid: string;
   email: string;
