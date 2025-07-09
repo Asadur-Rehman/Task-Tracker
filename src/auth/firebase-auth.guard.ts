@@ -5,7 +5,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { auth } from '../firebase/firebase-admin';
+import { auth, db } from '../firebase/firebase-admin';
+import { User } from '../modules/users/entities/user.model';
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
@@ -21,9 +22,33 @@ export class FirebaseAuthGuard implements CanActivate {
 
     try {
       const decodedToken = await auth.verifyIdToken(token);
-      req['user'] = decodedToken;
+      const userDoc = await db.collection('users').doc(decodedToken.uid).get();
+
+      if (!userDoc.exists) {
+        throw new UnauthorizedException('User record not found');
+      }
+
+      const userData = userDoc.data() as {
+        displayName?: string;
+        createdAt: FirebaseFirestore.Timestamp;
+        updatedAt: FirebaseFirestore.Timestamp;
+        preferences?: User['preferences'];
+      };
+
+      const enrichedUser: User = {
+        uid: decodedToken.uid,
+        email: decodedToken.email ?? '',
+        displayName: userData.displayName,
+        photoURL: decodedToken.picture ?? '',
+        createdAt: userData.createdAt.toDate(),
+        updatedAt: userData.updatedAt.toDate(),
+        preferences: userData.preferences,
+      };
+
+      req.user = enrichedUser;
       return true;
     } catch (err) {
+      console.error('Auth error:', err);
       throw new UnauthorizedException('Invalid or expired token');
     }
   }

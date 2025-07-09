@@ -1,28 +1,16 @@
 import { db } from './firebase-admin';
 
-export interface WithId {
-  id: string;
-  [key: string]: any;
-}
-
-export const generateId = (): string => {
-  const characters =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  return Array.from({ length: 16 }, () =>
-    characters.charAt(Math.floor(Math.random() * characters.length)),
-  ).join('');
-};
-
 export const createData = async <T extends object>(
   collectionName: string,
   data: T,
-): Promise<void> => {
-  const id = generateId();
+): Promise<string | null> => {
   try {
-    const docRef = db.collection(collectionName).doc(id);
-    await docRef.set({ ...data, id });
+    const docRef = await db.collection(collectionName).add(data);
+    await docRef.update({ id: docRef.id });
+    return docRef.id;
   } catch (error) {
     console.error('Error adding document:', error);
+    return null;
   }
 };
 

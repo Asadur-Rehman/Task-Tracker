@@ -19,9 +19,8 @@ export class TasksService {
     userId: string,
   ): Promise<string | null> {
     try {
-      const taskId = Date.now().toString();
-      const newTask = new Task(taskId, name, desc, 'Todo', start, end, userId);
-      await createData('tasks', newTask);
+      const newTask = new Task('', name, desc, 'Todo', start, end, userId);
+      const taskId = await createData('tasks', { ...newTask });
       return taskId;
     } catch (err) {
       console.error('Failed to insert task:', err);
