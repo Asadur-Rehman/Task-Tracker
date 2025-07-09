@@ -9,7 +9,7 @@ export const generateId = (): string => {
   const characters =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   return Array.from({ length: 16 }, () =>
-    characters.charAt(Math.floor(Math.random() * characters.length))
+    characters.charAt(Math.floor(Math.random() * characters.length)),
   ).join('');
 };
 
@@ -26,39 +26,25 @@ export const createData = async <T extends object>(
   }
 };
 
-export const readData = async <T = any>(
-  collectionName: string,
+export async function readData<T>(
+  collection: string,
   id: string,
-): Promise<T | undefined> => {
-  try {
-    const docRef = db.collection(collectionName).doc(id);
-    const docSnap = await docRef.get();
-    if (docSnap.exists) {
-      return docSnap.data() as T;
-    } else {
-      console.warn('No such document!');
-    }
-  } catch (error: any) {
-    console.error('Error getting document:', error.message);
-  }
-};
+): Promise<T | null> {
+  const doc = await db.collection(collection).doc(id).get();
+  if (!doc.exists) return null;
+  return doc.data() as T;
+}
 
-export const readStatusData = async <T = any>(
-  collectionName: string,
+export async function readStatusData<T>(
+  collection: string,
   status: string,
-): Promise<T[]> => {
-  try {
-    const querySnapshot = await db
-      .collection(collectionName)
-      .where('status', '==', status)
-      .get();
-
-    return querySnapshot.docs.map((doc) => doc.data() as T);
-  } catch (error: any) {
-    console.error('Error getting documents by status:', error.message);
-    return [];
-  }
-};
+): Promise<T[]> {
+  const snapshot = await db
+    .collection(collection)
+    .where('status', '==', status)
+    .get();
+  return snapshot.docs.map((doc) => doc.data() as T);
+}
 
 export const updateData = async <T extends object>(
   collectionName: string,
@@ -87,14 +73,33 @@ export const deleteData = async (
   }
 };
 
-export const readAllData = async <T = any>(
-  collectionName: string,
-): Promise<T[]> => {
-  try {
-    const querySnapshot = await db.collection(collectionName).get();
-    return querySnapshot.docs.map((doc) => doc.data() as T);
-  } catch (error) {
-    console.error('Error getting documents:', error);
-    return [];
+export async function readAllData<T>(collection: string): Promise<T[]> {
+  const snapshot = await db.collection(collection).get();
+  return snapshot.docs.map((doc) => doc.data() as T);
+}
+
+export async function readDataByField<T>(
+  collection: string,
+  field: string,
+  value: string,
+): Promise<T[]> {
+  const snapshot = await db
+    .collection(collection)
+    .where(field, '==', value)
+    .get();
+  return snapshot.docs.map((doc) => doc.data() as T);
+}
+
+export async function readDataByFields<T>(
+  collection: string,
+  filters: { field: string; value: string }[],
+): Promise<T[]> {
+  let query: FirebaseFirestore.Query = db.collection(collection);
+
+  for (const { field, value } of filters) {
+    query = query.where(field, '==', value);
   }
-};
+
+  const snapshot = await query.get();
+  return snapshot.docs.map((doc) => doc.data() as T);
+}

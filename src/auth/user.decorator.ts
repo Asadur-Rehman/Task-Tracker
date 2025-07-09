@@ -1,12 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { User } from '../modules/users/entities/user.model';
+import { Request } from 'express';
 
-export const User = createParamDecorator(
-  (field: string, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
+export const UserDecorator = createParamDecorator(
+  (
+    field: keyof User | undefined,
+    ctx: ExecutionContext,
+  ): User[keyof User] | User | undefined => {
+    const request = ctx.switchToHttp().getRequest<Request>();
     const user = request.user;
     return field ? user?.[field] : user;
   },

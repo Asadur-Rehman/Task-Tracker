@@ -8,7 +8,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { UserService } from './users.service';
-import { FirebaseUser } from './entities/user.model';
+import { User } from './entities/user.model';
 import { FirebaseLoginResponse } from './users.service';
 
 @Controller('users')
@@ -31,8 +31,8 @@ export class UserController {
   async signUp(
     @Body('email') email: string,
     @Body('password') password: string,
-    @Body('preferences') preferences: FirebaseUser['preferences'],
-  ): Promise<FirebaseUser> {
+    @Body('preferences') preferences: User['preferences'],
+  ): Promise<User> {
     if (!email || !password) {
       throw new BadRequestException('Email and password are required');
     }
@@ -41,7 +41,7 @@ export class UserController {
   }
 
   @Get(':uid')
-  async getUser(@Param('uid') uid: string): Promise<FirebaseUser | null> {
+  async getUser(@Param('uid') uid: string): Promise<User | null> {
     return this.userService.getUser(uid);
   }
 
@@ -54,8 +54,8 @@ export class UserController {
   @Patch(':uid')
   async updateUser(
     @Param('uid') uid: string,
-    @Body() updates: Partial<FirebaseUser>,
-  ): Promise<FirebaseUser> {
+    @Body() updates: Partial<User>,
+  ): Promise<User> {
     return this.userService.updateUser(uid, updates);
   }
 }

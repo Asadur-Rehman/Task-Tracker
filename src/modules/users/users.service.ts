@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { admin, auth, db } from '../../firebase/firebase-admin';
-import { FirebaseUser } from './entities/user.model';
+import { User } from './entities/user.model';
 
 export interface FirebaseLoginResponse {
   idToken: string;
@@ -47,12 +47,12 @@ export class UserService {
   async createUser(
     email: string,
     password: string,
-    userData: Partial<FirebaseUser>,
-  ): Promise<FirebaseUser> {
+    userData: Partial<User>,
+  ): Promise<User> {
     const userRecord = await auth.createUser({ email, password });
 
     const now = new Date();
-    const newUser: FirebaseUser = {
+    const newUser: User = {
       uid: userRecord.uid,
       email: userRecord.email!,
       displayName: userRecord.displayName || '',
@@ -70,10 +70,10 @@ export class UserService {
     return newUser;
   }
 
-  async getUser(uid: string): Promise<FirebaseUser | null> {
+  async getUser(uid: string): Promise<User | null> {
     const doc = await db.collection('users').doc(uid).get();
     if (!doc.exists) return null;
-    return doc.data() as FirebaseUser;
+    return doc.data() as User;
   }
 
   async verifyToken(idToken: string): Promise<admin.auth.DecodedIdToken> {
@@ -85,10 +85,7 @@ export class UserService {
     }
   }
 
-  async updateUser(
-    uid: string,
-    updates: Partial<FirebaseUser>,
-  ): Promise<FirebaseUser> {
+  async updateUser(uid: string, updates: Partial<User>): Promise<User> {
     const userDoc = db.collection('users').doc(uid);
     const snapshot = await userDoc.get();
 
@@ -100,6 +97,6 @@ export class UserService {
     await userDoc.update({ ...updates, updatedAt });
 
     const updatedSnapshot = await userDoc.get();
-    return updatedSnapshot.data() as FirebaseUser;
+    return updatedSnapshot.data() as User;
   }
 }

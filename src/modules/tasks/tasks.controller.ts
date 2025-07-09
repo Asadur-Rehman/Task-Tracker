@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { FirebaseAuthGuard } from '../../auth/firebase-auth.guard';
-import { User } from '../../auth/user.decorator';
+import { UserDecorator } from '../../auth/user.decorator';
 
 @UseGuards(FirebaseAuthGuard)
 @Controller('tasks')
@@ -19,7 +19,7 @@ export class TasksController {
 
   @Post()
   addTask(
-    @User('uid') userId: string,
+    @UserDecorator('uid') userId: string,
     @Body('name') name: string,
     @Body('description') desc: string,
     @Body('startDate') start: Date,
@@ -29,34 +29,34 @@ export class TasksController {
   }
 
   @Get()
-  getAllTasks(@User('uid') userId: string) {
+  getAllTasks(@UserDecorator('uid') userId: string) {
     return this.tasksService.getTasks(userId);
   }
 
   @Get('blue')
-  getBlueTasks(@User('uid') userId: string) {
+  getBlueTasks(@UserDecorator('uid') userId: string) {
     return this.tasksService.getBlueTasks(userId);
   }
 
   @Get('orange')
-  getOrangeTasks(@User('uid') userId: string) {
+  getOrangeTasks(@UserDecorator('uid') userId: string) {
     return this.tasksService.getOrangeTasks(userId);
   }
 
   @Get('green')
-  getGreenTasks(@User('uid') userId: string) {
+  getGreenTasks(@UserDecorator('uid') userId: string) {
     return this.tasksService.getGreenTasks(userId);
   }
 
   @Get(':id')
-  getTask(@Param('id') id: string, @User('uid') userId: string) {
+  getTask(@Param('id') id: string, @UserDecorator('uid') userId: string) {
     return this.tasksService.getSingleTask(id, userId);
   }
 
   @Patch(':id')
   updateTask(
     @Param('id') id: string,
-    @User('uid') userId: string,
+    @UserDecorator('uid') userId: string,
     @Body('name') name: string,
     @Body('description') desc: string,
     @Body('status') status: string,
@@ -75,7 +75,7 @@ export class TasksController {
   }
 
   @Delete(':id')
-  removeTask(@Param('id') id: string, @User('uid') userId: string) {
+  removeTask(@Param('id') id: string, @UserDecorator('uid') userId: string) {
     return this.tasksService.deleteTask(id, userId);
   }
 }
