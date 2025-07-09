@@ -5,11 +5,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { auth, db } from '../firebase/firebase-admin';
 import { User } from '../modules/users/entities/user.model';
+import { AuthService } from '../modules/auth/auth.service';
+import { db } from 'src/firebase/firebase-admin';
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
+  constructor(private readonly authService: AuthService) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<Request>();
     const authHeader = req.headers.authorization;
@@ -21,7 +24,7 @@ export class FirebaseAuthGuard implements CanActivate {
     const token = authHeader.split('Bearer ')[1].trim();
 
     try {
-      const decodedToken = await auth.verifyIdToken(token);
+      const decodedToken = await this.authService.verifyIdToken(token);
       const userDoc = await db.collection('users').doc(decodedToken.uid).get();
 
       if (!userDoc.exists) {

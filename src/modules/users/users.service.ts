@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { admin, auth, db } from '../../firebase/firebase-admin';
+import { admin, db } from '../../firebase/firebase-admin';
 import { User } from './entities/user.model';
+import { AuthService } from '../auth/auth.service';
 
 export interface FirebaseLoginResponse {
   idToken: string;
@@ -12,9 +13,10 @@ export interface FirebaseLoginResponse {
 
 @Injectable()
 export class UserService {
+  constructor(private readonly authService: AuthService) {}
+
   async login(email: string, password: string): Promise<FirebaseLoginResponse> {
     const apiKey = process.env.FIREBASE_API_KEY;
-
     const response = await fetch(
       `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
       {
@@ -34,14 +36,7 @@ export class UserService {
     }
 
     const data = (await response.json()) as FirebaseLoginResponse;
-
-    return {
-      idToken: data.idToken,
-      refreshToken: data.refreshToken,
-      expiresIn: data.expiresIn,
-      localId: data.localId,
-      email: data.email,
-    };
+    return data;
   }
 
   async createUser(
@@ -49,7 +44,11 @@ export class UserService {
     password: string,
     userData: Partial<User>,
   ): Promise<User> {
-    const userRecord = await auth.createUser({ email, password });
+    const userRecord = await this.authService.createUser(
+      email,
+      password,
+      userData,
+    );
 
     const now = new Date();
     const newUser: User = {
@@ -78,8 +77,7 @@ export class UserService {
 
   async verifyToken(idToken: string): Promise<admin.auth.DecodedIdToken> {
     try {
-      const decodedToken = await auth.verifyIdToken(idToken);
-      return decodedToken;
+      return await this.authService.verifyIdToken(idToken);
     } catch (err) {
       throw new Error('Invalid or expired token');
     }
