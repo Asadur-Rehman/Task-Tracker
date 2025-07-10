@@ -8,8 +8,8 @@ export class CreateTaskDto {
   description!: string;
 
   @IsDateString()
-  startDate!: string;
+  startDate!: Date;
 
   @IsDateString()
-  deadline!: string;
+  deadline!: Date;
 }

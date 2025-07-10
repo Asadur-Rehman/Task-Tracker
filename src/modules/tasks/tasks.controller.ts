@@ -62,18 +62,24 @@ export class TasksController {
   @Patch(':id')
   updateTask(
     @Param('id') id: string,
-    @UserDecorator('uid') userId: string,
     @Body() updateTaskDto: UpdateTaskDto,
   ) {
     const { name, description, status, startDate, deadline } = updateTaskDto;
     return this.tasksService.updateTask(
       id,
-      userId,
       name,
       description,
       status,
       startDate ? new Date(startDate) : undefined,
       deadline ? new Date(deadline) : undefined,
     );
+  }
+
+  @Delete(':id')
+  deleteTask(
+    @Param('id') id: string,
+    @UserDecorator('uid') userId: string
+  ) {
+    return this.tasksService.deleteTask(id, userId);
   }
 }

@@ -49,7 +49,6 @@ export class TasksService {
 
   async updateTask(
     taskId: string,
-    userId: string,
     name?: string,
     desc?: string,
     status?: string,
@@ -63,7 +62,6 @@ export class TasksService {
         status,
         startDate: start,
         deadline: end,
-        userId,
       }).filter(([_, v]) => v !== undefined),
     );
 
