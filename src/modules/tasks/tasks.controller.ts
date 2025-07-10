@@ -39,19 +39,19 @@ export class TasksController {
     return this.tasksService.getTasks(userId);
   }
 
-  @Get('blue')
-  getBlueTasks(@UserDecorator('uid') userId: string) {
-    return this.tasksService.getBlueTasks(userId);
+  @Get('todo')
+  getTodoTasks(@UserDecorator('uid') userId: string) {
+    return this.tasksService.getTasksByStatus(userId, "Todo");
   }
 
-  @Get('orange')
-  getOrangeTasks(@UserDecorator('uid') userId: string) {
-    return this.tasksService.getOrangeTasks(userId);
+  @Get('inprogress')
+  getInprogressTasks(@UserDecorator('uid') userId: string) {
+    return this.tasksService.getTasksByStatus(userId, "InProgress");
   }
 
-  @Get('green')
-  getGreenTasks(@UserDecorator('uid') userId: string) {
-    return this.tasksService.getGreenTasks(userId);
+  @Get('completed')
+  getCompletedTasks(@UserDecorator('uid') userId: string) {
+    return this.tasksService.getTasksByStatus(userId, "Completed");
   }
 
   @Get(':id')

@@ -32,25 +32,11 @@ export class TasksService {
     return await readDataByField<Task>('tasks', 'userId', userId);
   }
 
-  async getBlueTasks(userId: string): Promise<Task[]> {
+  async getTasksByStatus(userId: string, status: string): Promise<Task[]> {
     return await readDataByFields<Task>('tasks', [
-      { field: 'userId', value: userId },
-      { field: 'status', value: 'Todo' },
-    ]);
-  }
-
-  async getOrangeTasks(userId: string): Promise<Task[]> {
-    return await readDataByFields<Task>('tasks', [
-      { field: 'userId', value: userId },
-      { field: 'status', value: 'InProgress' },
-    ]);
-  }
-
-  async getGreenTasks(userId: string): Promise<Task[]> {
-    return await readDataByFields<Task>('tasks', [
-      { field: 'userId', value: userId },
-      { field: 'status', value: 'Completed' },
-    ]);
+      {field: 'userId', value: userId},
+      {field: 'status', value: status},
+    ])
   }
 
   async getSingleTask(taskId: string, userId: string): Promise<Task | null> {

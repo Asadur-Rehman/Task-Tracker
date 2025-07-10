@@ -12,7 +12,7 @@ import { AuthService } from './auth.service';
 import { FirebaseLoginResponse } from './auth.service';
 
 @Controller('auth')
-export class UserController {
+export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
