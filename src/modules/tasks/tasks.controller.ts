@@ -11,6 +11,8 @@ import {
 import { TasksService } from './tasks.service';
 import { FirebaseAuthGuard } from '../../auth/firebase-auth.guard';
 import { UserDecorator } from '../../auth/user.decorator';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
 @UseGuards(FirebaseAuthGuard)
 @Controller('tasks')
@@ -20,12 +22,16 @@ export class TasksController {
   @Post()
   addTask(
     @UserDecorator('uid') userId: string,
-    @Body('name') name: string,
-    @Body('description') desc: string,
-    @Body('startDate') start: Date,
-    @Body('deadline') end: Date,
+    @Body() createTaskDto: CreateTaskDto,
   ) {
-    return this.tasksService.insertTask(name, desc, start, end, userId);
+    const { name, description, startDate, deadline } = createTaskDto;
+    return this.tasksService.insertTask(
+      name,
+      description,
+      new Date(startDate),
+      new Date(deadline),
+      userId,
+    );
   }
 
   @Get()
@@ -57,25 +63,17 @@ export class TasksController {
   updateTask(
     @Param('id') id: string,
     @UserDecorator('uid') userId: string,
-    @Body('name') name: string,
-    @Body('description') desc: string,
-    @Body('status') status: string,
-    @Body('startDate') start: Date,
-    @Body('deadline') end: Date,
+    @Body() updateTaskDto: UpdateTaskDto,
   ) {
+    const { name, description, status, startDate, deadline } = updateTaskDto;
     return this.tasksService.updateTask(
       id,
       userId,
       name,
-      desc,
+      description,
       status,
-      start,
-      end,
+      startDate ? new Date(startDate) : undefined,
+      deadline ? new Date(deadline) : undefined,
     );
-  }
-
-  @Delete(':id')
-  removeTask(@Param('id') id: string, @UserDecorator('uid') userId: string) {
-    return this.tasksService.deleteTask(id, userId);
   }
 }
