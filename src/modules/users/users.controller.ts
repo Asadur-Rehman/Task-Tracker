@@ -9,23 +9,10 @@ import {
 } from '@nestjs/common';
 import { UserService } from './users.service';
 import { User } from './entities/user.model';
-import { FirebaseLoginResponse } from './users.service';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Post('login')
-  async login(
-    @Body('email') email: string,
-    @Body('password') password: string,
-  ) {
-    if (!email || !password) {
-      throw new BadRequestException('Email and password are required');
-    }
-
-    return this.userService.login(email, password);
-  }
 
   @Post('signup')
   async signUp(

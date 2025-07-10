@@ -2,8 +2,40 @@ import { Injectable } from '@nestjs/common';
 import { auth, db } from '../../firebase/firebase-admin';
 import { UserRecord } from 'firebase-admin/auth';
 
+export interface FirebaseLoginResponse {
+  idToken: string;
+  refreshToken: string;
+  expiresIn: string;
+  localId: string;
+  email: string;
+}
+
 @Injectable()
 export class AuthService {
+  async login(email: string, password: string): Promise<FirebaseLoginResponse> {
+    const apiKey = process.env.FIREBASE_API_KEY;
+    const response = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          returnSecureToken: true,
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const error = (await response.json()) as { error?: { message?: string } };
+      throw new Error(error?.error?.message || 'Login failed');
+    }
+
+    const data = (await response.json()) as FirebaseLoginResponse;
+    return data;
+  }
+
   async verifyIdToken(token: string) {
     try {
       const decodedToken = await auth.verifyIdToken(token);
