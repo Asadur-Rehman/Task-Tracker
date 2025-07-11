@@ -8,6 +8,6 @@ export interface User {
   preferences?: {
     theme: 'light' | 'dark';
     tasksPerPage: number;
-    defaultSort: string;
+    defaultSort: 'dueDate' | 'priority' | 'createDate';
   };
 }
