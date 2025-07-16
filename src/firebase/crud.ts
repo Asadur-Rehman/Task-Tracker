@@ -1,3 +1,4 @@
+import { Stats } from 'fs';
 import { db } from './firebase-admin';
 
 export const createData = async <T extends object>(
@@ -33,6 +34,55 @@ export async function readStatusData<T>(
     .get();
   return snapshot.docs.map((doc) => doc.data() as T);
 }
+
+export async function readNumberOfStatusData(
+  collection: string,
+  status: string,
+  userId: string,
+): Promise<Number> {
+  const snapshot = await db
+    .collection(collection)
+    .where('userId', '==', userId)
+    .where('status', '==', status)
+    .get();
+  return snapshot.size;
+}
+
+export async function readNumberOfOverdueTasksForUser(
+  collection: string,
+  userId: string,
+): Promise<number> {
+  const now = new Date();
+
+  const snapshot = await db
+    .collection(collection)
+    .where('userId', '==', userId)
+    .where('deadline', '<', now)
+    .where('status', 'in', ['Todo', 'InProgress'])
+    .get();
+
+  return snapshot.size;
+}
+
+export async function readNumberOfUpcomingDeadlines(
+  collection: string,
+  userId: string,
+): Promise<number> {
+  const now = new Date();
+  const nextWeek = new Date();
+  nextWeek.setDate(now.getDate() + 7);
+
+  const snapshot = await db
+    .collection(collection)
+    .where('userId', '==', userId)
+    .where('deadline', '>=', now)
+    .where('deadline', '<=', nextWeek)
+    .where('status', 'in', ['Todo', 'InProgress'])
+    .get();
+
+  return snapshot.size;
+}
+
 
 export const updateData = async <T extends object>(
   collectionName: string,
@@ -78,16 +128,48 @@ export async function readDataByField<T>(
   return snapshot.docs.map((doc) => doc.data() as T);
 }
 
-export async function readDataByFields<T>(
+export async function countMatchingDocs(
+  collectionName: string,
+  field: string,
+  value: string,
+): Promise<number> {
+  const snapshot = await db
+    .collection(collectionName)
+    .where(field, '==', value)
+    .get();
+  return snapshot.size;
+}
+
+
+
+
+export async function readPaginatedDataByFields<T>(
   collection: string,
-  filters: { field: string; value: string }[],
-): Promise<T[]> {
+  filters: { field: string; value: string | undefined }[],
+  limit: number,
+  startAfterDocId?: string,
+  orderBy: string = 'startDate'   
+): Promise<{ data: T[]; lastVisibleId: string | null }> {
   let query: FirebaseFirestore.Query = db.collection(collection);
 
+
   for (const { field, value } of filters) {
-    query = query.where(field, '==', value);
+    if (value !== undefined) query = query.where(field, '==', value);
   }
 
-  const snapshot = await query.get();
-  return snapshot.docs.map((doc) => doc.data() as T);
+
+  query = query.orderBy(orderBy, 'desc').limit(limit);
+
+  if (startAfterDocId) {
+    const cursorDoc = await db.collection(collection).doc(startAfterDocId).get();
+    if (cursorDoc.exists) query = query.startAfter(cursorDoc);
+  }
+
+  const snapshot   = await query.get();
+  const docs       = snapshot.docs.map(d => d.data() as T);
+  const lastCursor = snapshot.docs.length ? snapshot.docs.at(-1)!.id : null;
+
+  return { data: docs, lastVisibleId: lastCursor };
 }
+
+

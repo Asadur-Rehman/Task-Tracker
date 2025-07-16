@@ -7,6 +7,7 @@ import {
   Patch,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { FirebaseAuthGuard } from '../../auth/firebase-auth.guard';
@@ -39,25 +40,59 @@ export class TasksController {
     return this.tasksService.getTasks(userId);
   }
 
-  @Get('todo')
-  getTodoTasks(@UserDecorator('uid') userId: string) {
-    return this.tasksService.getTasksByStatus(userId, "Todo");
+  @Get('status/paginated')
+  getPaginatedTasks(
+    @UserDecorator('uid') userId: string,
+    @Query('status') status: string,
+    @Query('limit') limit = '10',
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.tasksService.getPaginatedTasksByStatus(
+      userId,
+      status,
+      parseInt(limit),
+      cursor,
+    );
   }
 
-  @Get('inprogress')
-  getInprogressTasks(@UserDecorator('uid') userId: string) {
-    return this.tasksService.getTasksByStatus(userId, "InProgress");
+
+  // @Get('todo')
+  // getTodoTasks(@UserDecorator('uid') userId: string) {
+  //   return this.tasksService.getTasksByStatus(userId, "Todo");
+  // }
+
+  // @Get('inprogress')
+  // getInprogressTasks(@UserDecorator('uid') userId: string) {
+  //   return this.tasksService.getTasksByStatus(userId, "InProgress");
+  // }
+
+  // @Get('completed')
+  // getCompletedTasks(@UserDecorator('uid') userId: string) {
+  //   return this.tasksService.getTasksByStatus(userId, "Completed");
+  // }
+
+  @Get('number')
+  getNumberOfTasks(
+    @UserDecorator('uid') userId: string,
+  ) {
+    return this.tasksService.getNumberOfTasks(userId);
   }
 
-  @Get('completed')
-  getCompletedTasks(@UserDecorator('uid') userId: string) {
-    return this.tasksService.getTasksByStatus(userId, "Completed");
+  @Get('stats')
+  getStatOfTasks(
+    @UserDecorator('uid') userId: string,
+  ) {
+    return this.tasksService.getStats(userId);
   }
 
   @Get(':id')
   getTask(@Param('id') id: string, @UserDecorator('uid') userId: string) {
     return this.tasksService.getSingleTask(id, userId);
   }
+
+  
+
+
 
   @Patch(':id')
   updateTask(

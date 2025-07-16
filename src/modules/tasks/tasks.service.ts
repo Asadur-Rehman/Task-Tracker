@@ -5,9 +5,14 @@ import {
   updateData,
   deleteData,
   readDataByField,
-  readDataByFields,
+  readPaginatedDataByFields,
+  countMatchingDocs,
+  readNumberOfStatusData,
+  readNumberOfOverdueTasksForUser,
+  readNumberOfUpcomingDeadlines,
 } from '../../firebase/crud';
 import { Task } from './entities/task.model';
+import { Stats } from './entities/stat.model';
 
 @Injectable()
 export class TasksService {
@@ -28,16 +33,62 @@ export class TasksService {
     }
   }
 
+  
+
   async getTasks(userId: string): Promise<Task[]> {
     return await readDataByField<Task>('tasks', 'userId', userId);
   }
 
-  async getTasksByStatus(userId: string, status: string): Promise<Task[]> {
-    return await readDataByFields<Task>('tasks', [
-      {field: 'userId', value: userId},
-      {field: 'status', value: status},
-    ])
+  async getNumberOfTasks(userId:string): Promise<Number> {
+    return await countMatchingDocs('tasks', 'userId', userId);
   }
+
+  async getStats(userId: string): Promise<Stats> {
+    const totalTasks = await countMatchingDocs('tasks', 'userId', userId);
+  
+    const completedTasks = await readNumberOfStatusData('tasks', 'Completed', userId);
+    const inProgressTasks = await readNumberOfStatusData('tasks', 'InProgress', userId);
+    const toDoTasks = await readNumberOfStatusData('tasks', 'Todo', userId);
+    const overDueTasks = await readNumberOfOverdueTasksForUser('tasks', userId);
+    const upcomingDeadlines = await readNumberOfUpcomingDeadlines('tasks', userId);
+  
+    const completionRate = totalTasks === 0 ? 0 : Number(completedTasks) / Number(totalTasks);
+  
+    return new Stats(
+      totalTasks,
+      completedTasks,
+      inProgressTasks,
+      toDoTasks,
+      overDueTasks,
+      upcomingDeadlines,
+      completionRate,
+    );
+  }
+  
+
+  async getPaginatedTasksByStatus(
+    userId: string,
+    status: string,
+    limit: number,
+    cursor?: string
+  ): Promise<{ tasks: Task[]; nextCursor: string | null }> {
+    const { data, lastVisibleId } = await readPaginatedDataByFields<Task>(
+      'tasks',
+      [
+        { field: 'userId', value: userId },
+        { field: 'status', value: status },
+      ],
+      limit,
+      cursor,
+      'startDate'
+    );
+  
+    return {
+      tasks: data,
+      nextCursor: lastVisibleId,
+    };
+  }
+  
 
   async getSingleTask(taskId: string, userId: string): Promise<Task | null> {
     const task = await readData<Task>('tasks', taskId);
