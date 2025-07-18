@@ -46,12 +46,14 @@ export class TasksController {
     @Query('status') status: string,
     @Query('limit') limit = '10',
     @Query('cursor') cursor?: string,
+    @Query('orderBy') orderBy?: string,
   ) {
     return this.tasksService.getPaginatedTasksByStatus(
       userId,
       status,
       parseInt(limit),
       cursor,
+      orderBy,
     );
   }
 

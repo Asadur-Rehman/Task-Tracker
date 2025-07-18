@@ -27,7 +27,7 @@ export class UserService {
       preferences: userData.preferences || {
         theme: 'light',
         tasksPerPage: 10,
-        defaultSort: 'createDate',
+        defaultSort: 'startDate',
       },
       createdAt: now,
       updatedAt: now,

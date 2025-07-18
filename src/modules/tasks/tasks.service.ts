@@ -70,7 +70,8 @@ export class TasksService {
     userId: string,
     status: string,
     limit: number,
-    cursor?: string
+    cursor?: string,
+    orderBy?: string
   ): Promise<{ tasks: Task[]; nextCursor: string | null }> {
     const { data, lastVisibleId } = await readPaginatedDataByFields<Task>(
       'tasks',
@@ -80,7 +81,7 @@ export class TasksService {
       ],
       limit,
       cursor,
-      'startDate'
+      orderBy
     );
   
     return {
