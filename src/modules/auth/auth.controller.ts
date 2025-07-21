@@ -20,7 +20,6 @@ export class AuthController {
     if (!email || !password) {
       throw new BadRequestException('Email and password are required');
     }
-
     return this.authService.login(email, password);
   }
 }

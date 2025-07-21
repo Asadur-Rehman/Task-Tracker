@@ -57,7 +57,6 @@ export class TasksController {
     );
   }
 
-
   // @Get('todo')
   // getTodoTasks(@UserDecorator('uid') userId: string) {
   //   return this.tasksService.getTasksByStatus(userId, "Todo");
@@ -91,10 +90,6 @@ export class TasksController {
   getTask(@Param('id') id: string, @UserDecorator('uid') userId: string) {
     return this.tasksService.getSingleTask(id, userId);
   }
-
-  
-
-
 
   @Patch(':id')
   updateTask(

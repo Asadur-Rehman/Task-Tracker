@@ -83,7 +83,6 @@ export async function readNumberOfUpcomingDeadlines(
   return snapshot.size;
 }
 
-
 export const updateData = async <T extends object>(
   collectionName: string,
   id: string,
@@ -140,9 +139,6 @@ export async function countMatchingDocs(
   return snapshot.size;
 }
 
-
-
-
 export async function readPaginatedDataByFields<T>(
   collection: string,
   filters: { field: string; value: string | undefined }[],
@@ -152,11 +148,9 @@ export async function readPaginatedDataByFields<T>(
 ): Promise<{ data: T[]; lastVisibleId: string | null }> {
   let query: FirebaseFirestore.Query = db.collection(collection);
 
-
   for (const { field, value } of filters) {
     if (value !== undefined) query = query.where(field, '==', value);
   }
-
 
   query = query.orderBy(orderBy, 'desc').limit(limit);
 
@@ -171,5 +165,3 @@ export async function readPaginatedDataByFields<T>(
 
   return { data: docs, lastVisibleId: lastCursor };
 }
-
-
