@@ -3,7 +3,9 @@ export class Task {
     public id: string,
     public name: string,
     public description: string,
+    public status: string,
     public startDate: Date,
     public deadline: Date,
+    public userId: string,
   ) {}
 }

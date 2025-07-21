@@ -6,61 +6,112 @@ import {
   Param,
   Patch,
   Delete,
+  UseGuards,
+  Query,
 } from '@nestjs/common';
-
 import { TasksService } from './tasks.service';
+import { FirebaseAuthGuard } from '../../auth/firebase-auth.guard';
+import { UserDecorator } from '../../auth/user.decorator';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
+@UseGuards(FirebaseAuthGuard)
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
   addTask(
-    @Body('name') taskName: string,
-    @Body('description') taskDesc: string,
-    @Body('startDate') taskStart: Date,
-    @Body('deadline') taskEnd: Date,
+    @UserDecorator('uid') userId: string,
+    @Body() createTaskDto: CreateTaskDto,
   ) {
-    const generatedId = this.tasksService.insertTask(
-      taskName,
-      taskDesc,
-      taskStart,
-      taskEnd,
+    const { name, description, startDate, deadline } = createTaskDto;
+    return this.tasksService.insertTask(
+      name,
+      description,
+      new Date(startDate),
+      new Date(deadline),
+      userId,
     );
-    return { id: generatedId };
   }
 
   @Get()
-  getAllTasks() {
-    return this.tasksService.getTasks();
+  getAllTasks(@UserDecorator('uid') userId: string) {
+    return this.tasksService.getTasks(userId);
+  }
+
+  @Get('status/paginated')
+  getPaginatedTasks(
+    @UserDecorator('uid') userId: string,
+    @Query('status') status: string,
+    @Query('limit') limit = '10',
+    @Query('cursor') cursor?: string,
+    @Query('orderBy') orderBy?: string,
+  ) {
+    return this.tasksService.getPaginatedTasksByStatus(
+      userId,
+      status,
+      parseInt(limit),
+      cursor,
+      orderBy,
+    );
+  }
+
+  // @Get('todo')
+  // getTodoTasks(@UserDecorator('uid') userId: string) {
+  //   return this.tasksService.getTasksByStatus(userId, "Todo");
+  // }
+
+  // @Get('inprogress')
+  // getInprogressTasks(@UserDecorator('uid') userId: string) {
+  //   return this.tasksService.getTasksByStatus(userId, "InProgress");
+  // }
+
+  // @Get('completed')
+  // getCompletedTasks(@UserDecorator('uid') userId: string) {
+  //   return this.tasksService.getTasksByStatus(userId, "Completed");
+  // }
+
+  @Get('number')
+  getNumberOfTasks(
+    @UserDecorator('uid') userId: string,
+  ) {
+    return this.tasksService.getNumberOfTasks(userId);
+  }
+
+  @Get('stats')
+  getStatOfTasks(
+    @UserDecorator('uid') userId: string,
+  ) {
+    return this.tasksService.getStats(userId);
   }
 
   @Get(':id')
-  getTask(@Param('id') taskId: string) {
-    return this.tasksService.getSingleTask(taskId);
+  getTask(@Param('id') id: string, @UserDecorator('uid') userId: string) {
+    return this.tasksService.getSingleTask(id, userId);
   }
 
   @Patch(':id')
   updateTask(
-    @Param('id') taskId: string,
-    @Body('name') taskName: string,
-    @Body('description') taskDesc: string,
-    @Body('startDate') taskStart: Date,
-    @Body('deadline') taskEnd: Date,
+    @Param('id') id: string,
+    @Body() updateTaskDto: UpdateTaskDto,
   ) {
-    this.tasksService.updateTask(
-      taskId,
-      taskName,
-      taskDesc,
-      taskStart,
-      taskEnd,
+    const { name, description, status, startDate, deadline } = updateTaskDto;
+    return this.tasksService.updateTask(
+      id,
+      name,
+      description,
+      status,
+      startDate ? new Date(startDate) : undefined,
+      deadline ? new Date(deadline) : undefined,
     );
-    return null;
   }
 
   @Delete(':id')
-  removeTask(@Param('id') taskId: string) {
-    this.tasksService.deleteTask(taskId);
-    return null;
+  deleteTask(
+    @Param('id') id: string,
+    @UserDecorator('uid') userId: string
+  ) {
+    return this.tasksService.deleteTask(id, userId);
   }
 }
